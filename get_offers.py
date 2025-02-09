@@ -1,15 +1,20 @@
-import numpy as np
-import pandas as pd
+from urllib import request
+from bs4 import BeautifulSoup
+import requests, re, os
 
-def get_offers(city='Warszawa', site ='otodom'):
+
+def get_offers(pages = 50) -> list:
+    """
+    function to get you offers from x amount of pages of results
+    """
     
-# Tworzenie listy linków do ofert dla ofert z pierwszych 50 stron
+    # Tworzenie listy linków do ofert dla ofert z pierwszych 50 stron
 
 
     lista_ofert = []
 
-    for page in range(1):
-        url = "https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie/mazowieckie/warszawa/warszawa/warszawa?viewType=listing&page="+str(page)
+    for page in range(pages):
+        url = f"https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie/mazowieckie/warszawa/warszawa/warszawa?viewType=listing&page={page+1}"
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/"
         }
@@ -40,5 +45,8 @@ def get_offers(city='Warszawa', site ='otodom'):
         for element in unique_urls:
             lista_ofert.append(element)
 
-    print("Ilość ofert: ")
-    len(lista_ofert)
+    print(f"Ilość ofert: {len(lista_ofert)}")
+    return lista_ofert
+
+if __name__ == '__main__':
+    lista_ofert = get_offers(pages=1)
