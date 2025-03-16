@@ -45,7 +45,7 @@ def get_offers(pages = 50) -> list:
         for element in unique_urls:
             lista_ofert.append(element)
 
-    print(f"Ilość ofert: {len(lista_ofert)}")
+    print(f"Liczba ofert: {len(lista_ofert)}")
     return lista_ofert
 
 if __name__ == '__main__':
