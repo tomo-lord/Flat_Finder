@@ -2,6 +2,7 @@ import requests
 import re
 import pandas as pd
 from bs4 import BeautifulSoup
+from IPython.display import clear_output
 
 
 
