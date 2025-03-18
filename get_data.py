@@ -39,7 +39,7 @@ def get_data(lista_ofert: list) -> pd.DataFrame:
 
 
     
-
+    counter = 0
     for oferta in lista_ofert:
 
         # przygotowywanie html do parsowania
@@ -52,6 +52,9 @@ def get_data(lista_ofert: list) -> pd.DataFrame:
         if r.status_code == 200:
             soup = BeautifulSoup(r.content, 'html5lib')
             html_string = str(soup)
+            clear_output(wait=False)
+            counter += 1
+            print(f"Proggress: {counter} out of " + str(len(lista_ofert)))
         else:
             print(f"Failed to retrieve the webpage. Status code: {r.status_code}")
 
