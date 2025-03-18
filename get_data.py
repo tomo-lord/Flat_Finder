@@ -44,7 +44,7 @@ def get_data(lista_ofert: list) -> pd.DataFrame:
     for oferta in lista_ofert:
 
         # przygotowywanie html do parsowania
-        url = "https://www.otodom.pl/" + str(oferta)
+        url = "https://www.otodom.pl" + str(oferta)
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/"
         }
