@@ -1,7 +1,11 @@
 .vscode/
 .ipynb_checkpoints/
 __pycache__/
+cashe/
 16.ipynb
 15.ipynb
 17.ipynb
 site-no-exact-loaction.html
+DataTable.py
+archive/
+*.csv
