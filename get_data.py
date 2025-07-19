@@ -1,8 +1,10 @@
 import requests
 import re
 import pandas as pd
+import numpy as np
 from bs4 import BeautifulSoup
 from IPython.display import clear_output
+from tqdm import tqdm
 
 
 
@@ -40,8 +42,7 @@ def get_data(lista_ofert: list) -> pd.DataFrame:
 
 
     
-    counter = 0
-    for oferta in lista_ofert:
+    for oferta in tqdm(lista_ofert, desc="getting data for offers "):
 
         # przygotowywanie html do parsowania
         url = "https://www.otodom.pl" + str(oferta)
@@ -53,9 +54,6 @@ def get_data(lista_ofert: list) -> pd.DataFrame:
         if r.status_code == 200:
             soup = BeautifulSoup(r.content, 'html5lib')
             html_string = str(soup)
-            clear_output(wait=False)
-            counter += 1
-            print(f"Proggress: {counter} out of " + str(len(lista_ofert)))
         else:
             print(f"Failed to retrieve the webpage. Status code: {r.status_code}")
 
@@ -108,7 +106,7 @@ def get_data(lista_ofert: list) -> pd.DataFrame:
 
         #extracting values from table
         for key, label in details_dict.items():
-            selector = f"p:contains('{label}')"  # Look for p tag containing the label
+            selector = f"p:-soup-contains('{label}')"  # Look for p tag containing the label
             try:
                 element = soup.select_one(selector)
                 if element:
@@ -185,5 +183,31 @@ def get_data(lista_ofert: list) -> pd.DataFrame:
             data["Liczba pokoi"].append("brak danych")
 
 
-    df = pd.DataFrame(data)
-    return df
+    data_set = pd.DataFrame(data)
+
+    # data clean-up
+    data_set['Cena'] = data_set['Cena'].astype(str).str.replace(',', '.')
+    data_set['Cena'] = pd.to_numeric(data_set['Cena'].str.replace(' ', ''), errors='coerce')
+    data_set['Powierzchnia'] = data_set['Powierzchnia'].str.replace(',', '.')
+    data_set[['Piętro', 'liczba pięter w budynku']] = data_set['Piętro'].str.split('/', expand=True)
+    data_set['Piętro'] = data_set['Piętro'].replace('parter', 0)
+    data_set['Piętro'] = data_set['Piętro'].replace('> 10', 11) #wszystkie piętra wyżej niż 10 oznaczymy jako 11
+    data_set['Czynsz'] = data_set['Czynsz'].str.replace(',', '.')
+    data_set['Czynsz'] = data_set['Czynsz'].str.replace('zł', '')
+    data_set = data_set.replace('brak danych', np.nan)
+    data_set = data_set.replace('brak informacji', np.nan)
+    data_set['Czynsz'] = data_set['Czynsz'].str.replace(' ', '')
+    data_set['Cena za m²'] = pd.to_numeric(data_set['Cena za m²'], errors='coerce')
+
+    # dropping not populated columns
+    data_set = data_set.drop(['Rzut mieszkania', 'Numer mieszkania'], axis=1)
+    kolejnosc = ['link','Tytuł oferty', 'Cena','Powierzchnia','Cena za m²', 'Liczba pokoi', 'Rynek', 'Piętro', 'liczba pięter w budynku', 'Rodzaj zabudowy','Rok budowy','Typ ogłoszeniodawcy', 'Certyfikat energetyczny','Rodzaj zabudowy','Materiał budynku','Okna','Ogrzewanie','Stan wykończenia', 'Czynsz', 'Forma własności', 'Dostępne od', 'Opis', 'Szerokość geograficzna', 'Długość geograficzna']
+    data_set = data_set[kolejnosc]
+    data_set = data_set.rename(columns={'Cena za m²': 'cena za metr', 'Szerokość geograficzna':'lat', 'Długość geograficzna':'lon'})
+    data_set['Powierzchnia'] = pd.to_numeric(data_set['Powierzchnia'], errors='coerce')
+    data_set['Rok budowy'] = pd.to_numeric(data_set['Rok budowy'], errors='coerce')
+    data_set['Czynsz'] = pd.to_numeric(data_set['Czynsz'], errors='coerce')
+    data_set['Piętro'] = pd.to_numeric(data_set['Piętro'], errors='coerce')
+    data_set.drop_duplicates(subset='link')
+
+    return data_set

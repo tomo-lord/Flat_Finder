@@ -1,6 +1,8 @@
 from urllib import request
 from bs4 import BeautifulSoup
 import requests, re, os
+from tqdm import tqdm
+from IPython.display import clear_output
 
 
 def get_offers(pages = 50) -> list:
@@ -12,8 +14,7 @@ def get_offers(pages = 50) -> list:
 
 
     lista_ofert = []
-
-    for page in range(pages):
+    for page in tqdm(range(pages), desc='finding offers '):
         url = f"https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie/mazowieckie/warszawa/warszawa/warszawa?viewType=listing&page={page+1}"
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/"
