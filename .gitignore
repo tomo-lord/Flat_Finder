@@ -9,3 +9,6 @@ site-no-exact-loaction.html
 DataTable.py
 archive/
 *.csv
+credentials.json
+token.json
+.idea
