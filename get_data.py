@@ -45,17 +45,19 @@ def get_data(lista_ofert: list) -> pd.DataFrame:
     for oferta in tqdm(lista_ofert, desc="getting data for offers "):
 
         # przygotowywanie html do parsowania
-        url = "https://www.otodom.pl" + str(oferta)
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/"
-        }
-        r = requests.get(url = url, headers=headers)
+        # url = "https://www.otodom.pl" + str(oferta)
+        # headers = {
+        #     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/"
+        # }
+        # r = requests.get(url = url, headers=headers)
 
-        if r.status_code == 200:
-            soup = BeautifulSoup(r.content, 'html5lib')
-            html_string = str(soup)
-        else:
-            print(f"Failed to retrieve the webpage. Status code: {r.status_code}")
+        # if r.status_code == 200:
+        #     soup = BeautifulSoup(r.content, 'html5lib')
+        #     html_string = str(soup)
+        # else:
+        #     print(f"Failed to retrieve the webpage. Status code: {r.status_code}")
+
+        
 
         data['link'].append(url)
 

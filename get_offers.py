@@ -1,53 +1,80 @@
-from urllib import request
+import requests
 from bs4 import BeautifulSoup
-import requests, re, os
 from tqdm import tqdm
-from IPython.display import clear_output
 
 
-def get_offers(pages = 50) -> list:
-    """
-    function to get you offers from x amount of pages of results
-    """
-    
-    # Tworzenie listy linków do ofert dla ofert z pierwszych 50 stron
+def get_offers(
+    transaction_type: str = "sprzedaz",
+    category: str = "mieszkanie",
+    region: str = "mazowieckie",
+    city: str = "warszawa",
+    subregion: str = "warszawa",
+    district: str = "warszawa",
+    pages: int = 50,
+    extra_params: dict | None = None,
+) -> list[str]:
+    base_url = (
+        f"https://www.otodom.pl/pl/wyniki"
+        f"/{transaction_type.lower()}/{category.lower()}/{region.lower()}/{city.lower()}/{subregion.lower()}/{district.lower()}"
+    )
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        ),
+        "Accept-Language": "pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    }
+
+    lista_ofert: list[str] = []
+    seen: set[str] = set()
+
+    with requests.Session() as session:
+        session.headers.update(headers)
+
+        for page in tqdm(range(1, pages + 1), desc="Szukanie ofert"):
+            params = extra_params.copy() if extra_params else {}
+
+            if page > 1:
+                params["page"] = page
+
+            if page > 1:
+                session.headers.update({"Referer": f"{base_url}?page={page}"})
+
+            try:
+                r = session.get(base_url, params=params, timeout=10)
+                r.raise_for_status()
+            except requests.exceptions.RequestException as e:
+                print(f"Błąd na stronie {page}: {e}")
+                break
 
 
-    lista_ofert = []
-    for page in tqdm(range(pages), desc='finding offers '):
-        url = f"https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie/mazowieckie/warszawa/warszawa/warszawa?viewType=listing&page={page+1}"
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/"
-        }
-        r = requests.get(url, headers=headers)
+            soup = BeautifulSoup(r.content, "html.parser")
 
-        if r.status_code == 200:
-            soup = BeautifulSoup(r.content, 'html5lib')
-            html_string = str(soup)
-            #print("Success")
-        else:
-            print(f"Failed to retrieve the webpage. Status code: {r.status_code}")
-            break
-            
-        content = html_string
+            new_paths = [
+                link["href"]
+                for link in soup.find_all("a", href=True)
+                if link["href"].startswith("/pl/oferta/")
+            ]
 
-        # Parse the HTML content using BeautifulSoup
-        soup = BeautifulSoup(content, 'html.parser')
+            added_count = 0
+            for path in new_paths:
+                if path not in seen:
+                    seen.add(path)
+                    lista_ofert.append(path)
+                    added_count += 1
 
-        # Find all 'a' tags
-        links = soup.find_all('a', href=True)
+            if added_count == 0:
+                print(f"Brak nowych ofert na stronie {page} — zatrzymuję.")
+                break
 
-        # Extract the URLs
-        urls = [link['href'] for link in links]
-
-        # Filter the URLs that start with "/pl/oferta/"
-        filtered_urls = [url for url in urls if url.startswith('/pl/oferta/')]
-        unique_urls = list(set(filtered_urls))
-        for element in unique_urls:
-            lista_ofert.append(element)
-
-    print(f"Liczba ofert: {len(lista_ofert)}")
+    print(f"Łączna liczba ofert: {len(lista_ofert)}")
     return lista_ofert
 
-if __name__ == '__main__':
-    lista_ofert = get_offers(pages=1)
+
+if __name__ == "__main__":
+    oferty = get_offers(
+        district="warszawa",
+        pages=5,
+            )
+    #print(oferty)
